@@ -1,18 +1,14 @@
-# Use a Python base image
-FROM python:3.9-slim
+# Use PHP with Apache
+FROM php:8.2-apache
 
-# Set the working directory inside the container
-WORKDIR /app
+# Copy application code
+COPY app/ /var/www/html/
 
-# Copy the dependency file and install packages
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install mysqli extension for MySQL
+RUN docker-php-ext-install mysqli
 
-# Copy the rest of the application code
-COPY . .
+# Give Apache permission to serve files
+RUN chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
 
-# Expose the port the app runs on (8000)
-EXPOSE 8000
-
-# Define the command to run the application
-CMD ["python", "app.py"]
+# Expose port 80
+EXPOSE 80
