@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  webapp:
+    # Use the image you pushed to Docker Hub
+    image: your-dockerhub-username/devops-web-app:latest
+    # Map host port 80 to container port 8000
+    ports:
+      - "80:8000"
+    # Environment variables for the web app to find the database
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+    # Attach secrets to the webapp container
+    secrets:
+      - db_user
+      - db_password
+      - db_name
+    depends_on:
+      - db
+
+  db:
+    image: postgres:14
+    # Requirement: Attach a volume for persistent data [cite: 16]
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    # Attach secrets to the database container
+    secrets:
+      - db_user
+      - db_password
+      - db_name
+    # Use the *FILE versions* of environment variables to load from secrets
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/db_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      POSTGRES_DB_FILE: /run/secrets/db_name
+
+# Define the persistent volume
+volumes:
+  db_data:
+
+# Define the secrets
+secrets:
+  db_user:
+    file: ./db_user.txt
+  db_password:
+    file: ./db_password.txt
+  db_name:
+    file: ./db_name.txt
